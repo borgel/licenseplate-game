@@ -6,15 +6,15 @@ asdasd
 TODO add wordlength macro at top for configuration
 '''
 
-import pickle
+import sqlite3
 import sys
 from collections import defaultdict
 
 
-
 USAGE = ''': [-c WORDLIST.txt to create the reference table from the wordlist] [XYZ 3 letter sequence to lookup]'''
-PICKLE_FILE = "LicenseLookupTable.pickle"
-
+STORAGE_FILE = "LicenseLookupTable.db"
+SQL_TABLE_NAME = "words"
+SQL_TABLE_CREATE = '''CREATE TABLE ''' + SQL_TABLE_NAME + ''' (tlc text, word text)'''
 
 # print all ordered 3 letter combos in this word
 # run 3 indicies across the word until all reach the end
@@ -41,17 +41,27 @@ def letterCombos(word):
 
 
 def computeDict(wordlist):
-   # we want a dictionary of lists
-   # somehow, if we make this a dict of sets it's SIGNIFICANTLY slower
-   comboDict = defaultdict(list)
-
-   print 'building table from ' + str(wordlist)
+   print 'building table from the word list at ' + str(wordlist)
    wlist = open(wordlist, 'r')
+
+   # truncate results DB
+   f = open(STORAGE_FILE, 'w')
+   f.truncate()
+   f.close()
+
+   # open connection to results DB to write results to
+   conn = sqlite3.connect(STORAGE_FILE)
+   c = conn.cursor()
+
+   # create table
+   c.execute(SQL_TABLE_CREATE)
 
    # for every line in the file, add it to the reference table (without newline)
    for w in wlist:
       # remove whitespace and newlines
       w = w.strip()
+
+      kvs = set()
 
       # if the word is less than the shortest combo len, dont bother adding it
       if len(w) < 3:
@@ -60,34 +70,30 @@ def computeDict(wordlist):
       # iterate through all 3 letter combos in this word
       g = letterCombos(w)
       for combo in g:
-         # FIXME TODO dont insert dupe words in the list. should they be sets?
-         # or convert to set then to list?
-         # or afterwards go through all lists and list(set()) them?
-         comboDict[combo].append(w)
+         kvs.add((combo, w))
+
+      # insert or replace combo:w in the DB
+      #print 'adding: ' + str(kvs)
+      c.executemany("INSERT OR REPLACE INTO " + SQL_TABLE_NAME + " VALUES(?,?)", kvs)
 
    wlist.close()
 
-   # de-dupe each list of words
-   for k in comboDict.keys():
-      comboDict[k] = list(set(comboDict[k]))
+   #print 'Combo dictionary has a total of ' + str(len(comboDict)) + ' prefixes'
 
-   print 'Combo dictionary has a total of ' + str(len(comboDict)) + ' prefixes'
-
-   # pickle out map to local dir
-   f = open(PICKLE_FILE, 'w')
-   pickle.dump(comboDict, f)
-   f.close()
+   conn.commit()
+   conn.close()
 
 def doLookup(letters):
    print 'looking up words for ' + str(letters)
 
-   # try to open our pickle file
-   f = open(PICKLE_FILE, 'r')
-   comboDict = pickle.load(f)
-   f.close()
+   conn = sqlite3.connect(STORAGE_FILE)
+   c = conn.cursor()
 
-   for word in comboDict[letters]:
-      print word
+   # do an SQL lookup for all words with this prefix
+   for row in c.execute("SELECT * FROM " + SQL_TABLE_NAME + " WHERE tlc = '%s'" % letters):
+      print row[1]
+
+   conn.close()
 
 if len(sys.argv) < 2 or len(sys.argv) > 3:
    print str(sys.argv[0]) + USAGE

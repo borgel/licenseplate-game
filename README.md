@@ -32,10 +32,13 @@ Resources
 - Dictionary sourced from [http://wordlist.aspell.net/]. They provide a tarball with many more resources then we care about. To generate my test word list, all the files in final/ with the prefix 'american' were concatenated together. There's no reason more couldn't have been used.
 
 To do this, I used this one-liner:
-    find .|grep -v 'proper-names\|abbreviations'|xargs cat |strings|LC_ALL=C tr '[:upper:]' '[:lower:]'|LC_ALL=C sort|LC_ALL=C uniq - > all-nodupes.txt
+    find .|grep -v 'proper-names\\|abbreviations'|xargs cat |strings|LC_ALL=C tr '[:upper:]' '[:lower:]'|LC_ALL=C sort|LC_ALL=C uniq - > all-nodupes.txt
 
 This cats together all the files whose name doesn't include the two grepped-for strings, lowercasing them, removing any words with unicode, and de-duping. The nasty LC_ALL=c was to get (all those binaries) to parse unicode weirdness.
 
 Using the 2014.11.17 tarball, I got a total of 643,417 words in 6.5MB. I'm sure there are still some dupes, but whatever. Good enough for now.
 
+To Do
+=====
+- Sort to show words with letters sequentially at (and alpha)
 

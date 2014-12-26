@@ -90,7 +90,8 @@ def doLookup(letters):
    c = conn.cursor()
 
    # do an SQL lookup for all words with this prefix
-   for row in c.execute("SELECT * FROM " + SQL_TABLE_NAME + " WHERE tlc = '%s'" % letters):
+   #for row in c.execute("SELECT * FROM " + SQL_TABLE_NAME + " WHERE tlc = '%s'" % letters):
+   for row in c.execute("SELECT * FROM " + SQL_TABLE_NAME + " WHERE tlc = '%s' ORDER BY LENGTH(word)"  % letters):
       print row[1]
 
    conn.close()

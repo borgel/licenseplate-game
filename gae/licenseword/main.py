@@ -9,11 +9,28 @@ USAGE_MSG = '''
 asd
 '''
 
-GITHUB_DICT = 'https://raw.githubusercontent.com/borgel/licenseplate-game/master/wordlist-nodupes-ascii.txt'
+MAIN_PAGE_HTML = """\
+<html>
+   <body>
+      put a message here<br><br>
+      <form action="/search" method="post">
+         <div><textarea name="pattern" rows="1" cols="30"></textarea></div>
+         <div><input type="submit" value="Search for English Words"></div>
+      </form>
+   </body>
+</html>
+"""
 
 # do the actual game or whatever
 class QueryHandler(webapp2.RequestHandler):
+   def post(self):
+      pattern = self.request.get('pattern')
+      self.doWords(pattern)
+
    def get(self, pattern):
+      self.doWords(pattern)
+
+   def doWords(self, pattern):
       if(len(pattern) != 3):
          self.response.write("query wasn't 3 chars")
          return
@@ -54,9 +71,10 @@ class QueryHandler(webapp2.RequestHandler):
 class MainHandler(webapp2.RequestHandler):
     def get(self):
        # TODO make this print a form to fill out to execute the search
-        self.response.write(USAGE_MSG)
+        self.response.write(MAIN_PAGE_HTML)
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
+    ('/search', QueryHandler),
     ('/search/(.*)', QueryHandler)
 ], debug=True)

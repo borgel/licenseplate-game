@@ -12,7 +12,7 @@ asd
 MAIN_PAGE_HTML = """\
 <html>
    <body>
-      put a message here<br><br>
+      Enter 3 letters (and push the button) to do a search
       <form action="/search" method="post">
          <div><textarea name="pattern" rows="1" cols="30"></textarea></div>
          <div><input type="submit" value="Search for English Words"></div>

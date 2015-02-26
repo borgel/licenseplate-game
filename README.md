@@ -2,6 +2,8 @@ What?
 =====
 It plays the license plate game!
 
+licenseword.appspot.com
+
 Modern California license plates are in the form #XYZ###. Where XYZ are letters and #'s are numbers.
 
 The Game
